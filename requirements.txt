@@ -1,0 +1,10 @@
+selenium
+time
+re
+random
+icecream
+numpy
+pandas
+matplotlib
+seaborn
+plotly
