@@ -9,9 +9,8 @@ import pandas as pd
 class RedditScraper:
 
     def __init__(self, subreddit = "https://www.reddit.com/r/taskmaster/?f=flair_name%3A%22Episode%22",
-                 test_mode = True, run_all = False):
+                 run_all = False):
         self.subreddit = subreddit
-        self.test_mode = test_mode
         if run_all == True:
             print("Running all with default arguments")
             self.run_all()
@@ -42,11 +41,8 @@ class RedditScraper:
             print(f"Scrolling {x+1}/20")
             driver.execute_script('window.scrollBy(0,1000)')
             time.sleep(random.randint(5, 10))
-        # for class testing
-        if self.test_mode == True:
-            num_threads = 5
-        else: # tries 120 xpaths (at time of scraping there were 117 episode subs)
-            num_threads = 120
+        # tries 120 xpaths (at time of scraping there were about 120 episodes)
+        num_threads = 120
         for x in range(num_threads):
             print(f"Trying {x+1}/{num_threads}")
             try:
@@ -67,7 +63,7 @@ class RedditScraper:
                     file.write(url + '\n')
         print("Finished")
 
-    def get_single_thread(self, url = "https://www.reddit.com/r/taskmaster/comments/130n53a/taskmaster_s15e05_old_honkfoot_discussion/"):
+    def get_single_thread(self, url):
         print(f"GETTING SINGLE THREAD FROM {url}")
         # gets thread id from url
         thread_id = url.split('/')[6]
@@ -81,10 +77,13 @@ class RedditScraper:
         # gets total number of comments in this thread
         number_of_comments = driver.find_element(by=By.XPATH,
                                                  value = "/html/body/shreddit-app/div/div[2]/shreddit-async-loader/comment-body-header/div/span[2]/faceplate-number").text
-        number_of_comments = int(number_of_comments)
+        if number_of_comments.find("K") == -1:
+            number_of_comments = int(number_of_comments)
+        else:
+            number_of_comments = int(float(number_of_comments.replace("K", "")) * 1000)
         print(f"Total number of comments in this thread: {number_of_comments}")
         # scrolls down page and clicks "view more comments"
-        for x in range(2):
+        for x in range(20):
             print(f"Scrolling {x+1}/20")
             driver.execute_script('window.scrollBy(0,5000)')
             print("Loading")
@@ -92,7 +91,8 @@ class RedditScraper:
             try:
                 driver.find_element(by=By.XPATH,
                                     value='//*[@id="comment-tree"]/faceplate-partial/div[1]/button').click()
-                time.sleep(random.randint(5, 10))
+                time.sleep(random.randint(10, 20))
+                driver.execute_script('window.scrollBy(0,100000)')
                 print("OK")
             except:
                 print("did not find load more comments button")
@@ -102,7 +102,7 @@ class RedditScraper:
             os.mkdir("single_thread_data")
         # gets all comments without replies
         comments_dict = {}
-        for i in range(1, 5+1):
+        for i in range(1, number_of_comments+1):
             comment_id = f"{thread_id}_{str(i).zfill(5)}"
             print(f"Getting comment {comment_id} out of total: {number_of_comments}")
             try:
@@ -123,13 +123,15 @@ class RedditScraper:
         driver.quit()
         print("Finished")
 
-    def get_all_threads(self, **kwargs):
-        pass
+    def get_all_threads(self, url_list = "thread_urls.txt"):
+        with open(url_list, "r") as file:
+            for line in file:
+                self.get_single_thread(url = line)
 
     def merge_threads_to_csv(self, delete_extra_files = False):
-        pass
-
-
-
-
-
+        data_list = [pd.read_csv(f"single_thread_data/{file}") for file in os.listdir("single_thread_data")]
+        data_frame = pd.concat(data_list)[["comment_id", "comment_text"]]
+        data_frame.to_csv("all_scraped_data.csv")
+        print(data_frame.shape)
+        if delete_extra_files == True:
+            os.remove("single_thread_data")
