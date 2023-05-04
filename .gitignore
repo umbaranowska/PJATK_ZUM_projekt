@@ -1,3 +1,6 @@
 notatki.txt
 \.idea
 \venv
+01_data_scraping/__pycache__/
+01_data_scraping/single_thread_data/
+01_data_scraping/thread_urls.txt
