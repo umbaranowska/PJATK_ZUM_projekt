@@ -9,3 +9,6 @@ matplotlib
 seaborn
 plotly
 jupyter
+scikit-learn
+wordcloud
+spacy

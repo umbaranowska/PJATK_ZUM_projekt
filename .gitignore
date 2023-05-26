@@ -4,3 +4,4 @@ notatki.txt
 01_data_scraping/__pycache__/
 01_data_scraping/single_thread_data/
 01_data_scraping/thread_urls.txt
+/00_DATA_preprocessed/data_tokenized_2classes.csv
