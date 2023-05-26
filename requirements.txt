@@ -1,7 +1,4 @@
 selenium
-time
-re
-random
 icecream
 numpy
 pandas
@@ -12,3 +9,4 @@ jupyter
 scikit-learn
 wordcloud
 spacy
+tensorflow
